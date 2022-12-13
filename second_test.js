@@ -14,10 +14,10 @@ export default function () {
   res = http.get('http://localhost:3000/slow?tenant=eins');
   check(res, { 'status was 200': (r) => r.status == 200 });
   sleep(1);
-  res = http.get('http://localhost:3000/fast?tenant=eins');
+  res = http.get('http://localhost:3000/fast?tenant=zwei');
   check(res, { 'status was 200': (r) => r.status == 200 });
   sleep(1);
-  res = http.get('http://localhost:3000/slow?tenant=eins');
+  res = http.get('http://localhost:3000/slow?tenant=zwei');
   check(res, { 'status was 200': (r) => r.status == 200 });
   sleep(1);
 }

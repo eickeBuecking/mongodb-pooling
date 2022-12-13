@@ -1,7 +1,14 @@
 const _ = require('lodash');
 
-const MongoClient=require('mongodb');
-const connect_uri = 'mongodb://mongoadmin:secret@localhost:27888/?authSource=admin';
+const MongoClient=require('mongodb').MongoClient;
+const connect_uri = 'mongodb://mongoadmin:secret@localhost:27888/?authSource=admin&maxPoolSize=1';
+const client = new MongoClient(connect_uri, { monitorCommands:true, useUnifiedTopology:true });
+let connection;
+//client.on('commandStarted', (event) => console.debug(event));
+//client.on('commandSucceeded', (event) => console.debug(event));
+//client.on('commandFailed', (event) => console.debug(event));
+//client.on('connectionPoolCreated', (event) => console.debug(event));
+
 let connectionMap = {}
 
 exports.getConnectionByTenant = async (tenantId) => {
@@ -15,13 +22,12 @@ exports.getConnectionByTenant = async (tenantId) => {
 
 const initMongoDB = async (key) => {
   console.log('[initMongoDB.js]', 'Initializing Mongo Connection for Key =>', key)
+  if (_.isEmpty(connection)) {
+    console.log("Initial connect");
+    connection = await client.connect();
+  }
   try {
     
-    const connection = await MongoClient.connect(connect_uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      poolSize: 1
-    })
     db = await connection.db('test' + key);
     connectionMap[key] = db;
     db.collection("test").drop(function(err, delOK) {
