@@ -1,29 +1,25 @@
+const _ = require('lodash');
+
 const mongodb = require('mongodb');
+const connector = require('./connector-service')
 const express = require('express');
 
 const app = express();
 
 let db;
-const connectionOptions = { poolSize: 3 };
 
-mongodb.MongoClient.connect('mongodb://mongoadmin:secret@localhost:27888/?authSource=admin', connectionOptions, async function(err, database) {
-  if (err) throw err;
-  db = database.db('test');
-  // create some documents required for demonstration
-  db.collection("test").drop(function(err, delOK) {
-    //if (err) throw err;
-    if (delOK) console.log("Collection deleted");
-  });    
-  db.collection('test').insertOne({"a": "b"});
-  
-  app.listen(process.env.PORT || 3000, function() {
-    console.log(`Express.js server ups.`);
-    console.log("Pool size: " + db.poolSize);
-  });
+app.listen(process.env.PORT || 3000, function() {
+  console.log(`Express.js server ups.`);
 });
 
-app.get('/slow', function (req, res) {
-  db.collection('test').find({'$where': 'sleep(5000) || true'}).toArray(function(err, cursor) {
+app.get('/slow', async function (req, res) {
+  let tenant = req?.query?.tenant;
+  if (_.isEmpty(tenant)){
+    tenant = "default";
+  }
+  let my_db = await connector.getConnectionByTenant(tenant);
+
+  my_db.collection('test').find({'$where': 'sleep(5000) || true'}).toArray(function(err, cursor) {
     if (err) {
       console.log("Error: " + err);
     }
@@ -32,8 +28,13 @@ app.get('/slow', function (req, res) {
 	
 });
 
-app.get('/fast', function (req, res) {
-  db.collection('test').countDocuments({}, function(err, count) {
+app.get('/fast', async function (req, res) {
+  let tenant = req?.query?.tenant;
+  if (_.isEmpty(tenant)){
+    tenant = "default";
+  }
+  let my_db = await connector.getConnectionByTenant(tenant);
+  my_db.collection('test').countDocuments({}, function(err, count) {
     return res.json({'documentCount': count});
   });
 	

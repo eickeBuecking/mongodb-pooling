@@ -22,6 +22,7 @@
   "homepage": "https://github.com/js-kyle/mongodb-pooling#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "lodash": "^4.17.21",
     "mongodb": "^3.4.0",
     "newrelic": "^9.7.2"
   }
